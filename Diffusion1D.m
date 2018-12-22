@@ -2,7 +2,7 @@
 ...Finite Difference Method(a time march)
 % Numerical scheme used is a first order upwind in time and a second order
 ...central difference in space (both Implicit and Explicit)
-d
+    
 %%
 %Specifying Parameters
 nx=50;               %Number of steps in space(x)
@@ -12,6 +12,17 @@ dx=2/(nx-1);         %Width of space step
 x=0:dx:2;            %Range of x (0,2) and specifying the grid points
 u=zeros(nx,1);       %Preallocating u
 un=zeros(nx,1);      %Preallocating un
+
+dif=1;
+vel=1;
+kel=0;
+rec=1;
+eps=0.5;
+
+alp = dif*dt/dx/dx;
+bet = vel*dt/2/dx;
+gam = kel*dt;
+
 vis=0.01;            %Diffusion coefficient/viscosity
 beta=vis*dt/(dx*dx); %Stability criterion (0<=beta<=0.5, for explicit)
 UL=0.10;                %Left Dirichlet B.C
@@ -34,7 +45,8 @@ u(10)=5;
 %B.C vector
 bc=zeros(nx-2,1);
 %bc(1)=vis*dt*UL/dx^2; bc(nx-2)=vis*dt*UR/dx^2;  %Dirichlet B.Cs
-bc(1)=-UnL*vis*dt/dx; bc(nx-2)=UnR*vis*dt/dx;  %Neumann B.Cs
+bc(1)=-UnL*vel*dt/dx; 
+bc(nx-2)=UnR*vel*dt/dx;  %Neumann B.Cs
 %Calculating the coefficient matrix for the implicit scheme
 E=sparse(2:nx-2,1:nx-3,1,nx-2,nx-2);
 A=E+E'-2*speye(nx-2);        %Dirichlet B.Cs
@@ -45,6 +57,23 @@ D=speye(nx-2)-(vis*dt/dx^2)*A;
 %Calculating the velocity profile for each time step
 i=2:nx-1;
 for it=0:nt
+    
+    Ai=-eps*(alp+bet);
+    Bi=1+eps*(2*alp+gam);
+    Ci=-eps*(alp-bet);
+    Di=zeros(nx,1);
+
+    onesAi=ones(nx-1,1)*Ai;
+    onesBi=ones(nx,1)*Bi;
+    onesCi=ones(nx-1,1)*Ci;
+    A=diag(onesBi)+diag(onesAi,-1)+diag(onesCi,+1);
+
+    for i=2:nx-1
+        Di(i,1)=(1-eps)*(alp+bet)*un(i-1,1)+(1-(1-eps)*(2*alp+gam))*un(i,1)+(1-eps)*(alp-bet)*un(i+1,1);
+    end
+
+
+
     bc=zeros(nx-2,1);
     %bc(1)=vis*dt*UL/dx^2; bc(nx-2)=vis*dt*UR/dx^2;  %Dirichlet B.Cs
     bc(1)=.1;     bc(nx-2)=.1;  %Dirichlet B.Cs
@@ -69,10 +98,13 @@ for it=0:nt
     %-------------------
     %Implicit solution
     
-    U=un;U(1)=[];U(end)=[];
-    U=U+bc;
-    U=D\U;
-    u=[UL;U;UR];                      %Dirichlet
+    U=un;%U(1)=[];U(end)=[];
+    %U=U+bc;
+    %U=D\U;
+    U=A\U;
+    
+    u=U;
+    %u=[UL;U;UR];                      %Dirichlet
     %u=[U(1)-UnL*dx;U;U(end)+UnR*dx]; %Neumann
     %}
     %-------------------
@@ -80,4 +112,5 @@ for it=0:nt
     %{
     u(i)=un(i)+(vis*dt*(un(i+1)-2*un(i)+un(i-1))/(dx*dx));
     %}
+    sum(u)
 end
