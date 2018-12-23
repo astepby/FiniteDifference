@@ -98,9 +98,23 @@ for it=0:nt
     %-------------------
     %Implicit solution
     
-    U=un;%U(1)=[];U(end)=[];
+   % U=un;%U(1)=[];U(end)=[];
     %U=U+bc;
     %U=D\U;
+    
+    A(1,1)=1;
+    A(1,2)=0;
+    A(2,1+2)=A(2,1+2)+onesAi(1,1);
+    A(2,1)=0;
+    Di(2,1)=Di(2,1)+onesAi(1,1)*2*dx*0;
+  
+    
+    A(nx,nx)=1;
+    A(nx,nx-1)=0;
+    A(nx-1,nx-2)=A(nx-1,nx-2)+onesCi(nx-1,1);
+    A(nx-1,nx)=0;
+    Di(nx-1,1)=Di(nx-1,1)-onesCi(nx-3,1)*2*dx*0
+    U=un;
     U=A\U;
     
     u=U;
