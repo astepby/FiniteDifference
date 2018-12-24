@@ -2,7 +2,7 @@
 ...Finite Difference Method(a time march)
 % Numerical scheme used is a first order upwind in time and a second order
 ...central difference in space (both Implicit and Explicit)
-    
+%%    
 %%
 %Specifying Parameters
 nx=50;               %Number of steps in space(x)
